@@ -23,7 +23,7 @@ config.plugins = (config.plugins || []).concat([
 
   new HtmlWebpackPlugin({
     filename: 'index.html.etpl',
-    template: 'client/bootstrap/index.html.etpl.ejs',
+    template: 'client/bootstrap/index.html.ejs',
     // 需要自己控制inject的位置，方便以后添加CDN的代码
     inject: false,
     // 保证vendor在app前加载

@@ -5,18 +5,11 @@
   "author": "{{ author }}",
   "private": true,
   "dependencies": {
-    "@napos/fluxry": "0.1.5",
-    "@napos/melody-common": "^0.1.0",
-    "@napos/melody-os": "^1.0.0",
-    "@napos/napos-ng-analytics": "^1.2.8",
-    "@napos/napos-ng-beat": "^0.4.3",
     "angular": "^1.5.6",
     "angular-sanitize": "^1.5.6",
     "angular-ui-router": "^0.2.18",
     "jquery": "~2.1.0",
-    "keymirror": "^0.1.1",
     "lodash": "^3.9.0",
-    "node-uuid": "^1.4.7"
   },
   "devDependencies": {
     "babel-core": "^6.9.0",
