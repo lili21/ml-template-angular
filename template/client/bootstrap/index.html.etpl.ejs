@@ -1,0 +1,52 @@
+<!doctype html>
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <% for (var css in htmlWebpackPlugin.files.css) { %>
+  <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet">
+  <% } %>
+  <!-- CONFIGURATION START -->
+  <script>
+    window.CONFIG = {
+      app: {
+        name: '{{ name }}',
+        version: '4.4.0',
+        {{{{raw-helper}}}}
+        server: '{{_ .API_SERVER}}',
+      },
+      beat: {
+        default: {
+          uri: '{{_ .API_SERVER_DEFAULT}}',
+          opts: {
+            query: {
+              appName: 'melody',
+              appVersion: '4.4.0'
+            },
+            debug: {
+              mock: false,
+              disablePolling: true
+            }
+          }
+        }
+      },
+      ubtFrom: '{{_ .UBT_FROM}}'
+      {{{{/raw-helper}}}}
+    };
+  </script>
+  <!-- CONFIGURATION END -->
+  <title>{{ name }}</title>
+  <meta name="viewport" content="width=device-width">
+</head>
+<body>
+  <div class="view-port">
+    <div class="view-container">
+      <div class="container" ui-view>
+        <!-- melody food page -->
+      </div>
+    </div>
+  </div>
+  <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+  <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+  <% } %>
+</body>
+</html>
