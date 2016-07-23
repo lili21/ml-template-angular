@@ -1,8 +1,7 @@
-export default function config($stateProvider) {
-  'ngInject';
+export default ['$stateProvider', $stateProvider => {
   $stateProvider
     .state('app', {
       url: '/app',
-      template: '<div ui-view="wrapper" class="content">hello world</div>',
-    });
-}
+      template: '<div ui-view="wrapper" class="content">hello world</div>'
+    })
+}]

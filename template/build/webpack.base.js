@@ -1,5 +1,5 @@
-var path = require('path');
-var webpack = require('webpack');
+var path = require('path')
+var webpack = require('webpack')
 
 var config = {
   entry: {
@@ -55,6 +55,6 @@ var config = {
   plugins: [
     new webpack.optimize.OccurenceOrderPlugin()
   ]
-};
+}
 
-module.exports = config;
+module.exports = config

@@ -1,18 +1,18 @@
-var path = require('path');
-var webpack = require('webpack');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-var config = require('./webpack.base');
+var path = require('path')
+var webpack = require('webpack')
+var ExtractTextPlugin = require('extract-text-webpack-plugin')
+var HtmlWebpackPlugin = require('html-webpack-plugin')
+var config = require('./webpack.base')
 
-config.output.filename = '[name].[chunkhash:6].js';
-config.output.chunkFilename = '[id].[chunkhash:6].js';
+config.output.filename = '[name].[chunkhash:6].js'
+config.output.chunkFilename = '[id].[chunkhash:6].js'
 
 config.module.loaders = (config.module.loaders || []).concat([
   {
     test: /\.(sass|scss)$/,
     loader: ExtractTextPlugin.extract('style', 'css?sourceMap!sass')
   }
-]);
+])
 
 config.plugins = (config.plugins || []).concat([
   new webpack.DefinePlugin({
@@ -27,7 +27,8 @@ config.plugins = (config.plugins || []).concat([
     // 需要自己控制inject的位置，方便以后添加CDN的代码
     inject: false,
     // 保证vendor在app前加载
-    chunksSortMode: 'dependency'
+    chunksSortMode: 'dependency',
+    exluceChunks: 'manifest'
   }),
 
   // require node_modules内的模块都会打包到vendor中
@@ -36,6 +37,7 @@ config.plugins = (config.plugins || []).concat([
     minChunks: function(module) {
       return (
         module.resource &&
+        /\.js$/.test(module.resource) &&
         module.resource.indexOf(path.join(__dirname, '../node_modules')) === 0
       );
     }
@@ -55,8 +57,29 @@ config.plugins = (config.plugins || []).concat([
   }),
 
   new ExtractTextPlugin('[name].[contenthash:6].css')
-]);
+])
 
+// inline manifest code
+config.plugins.push(function() {
+  this.plugin('compilation', function(compilation) {
+    compilation.plugin('html-webpack-plugin-after-emit', function(file, callback) {
+      var manifest = ''
+      Object.keys(compilation.assets).forEach(function(filename) {
+        if (/\/?manifest./.test(filename)) {
+          manifest = '<script>' + compilation.assets[filename].source() + '</script>'
+        }
+      });
+      if (manifest) {
+        var htmlSource = file.html.source()
+        htmlSource = htmlSource.replace(/(<\/head>)/, manifest + '$1')
+        file.html.source = function() {
+          return htmlSource;
+        }
+      }
+      callback(null, file)
+    })
+  })
+})
 // config.devtool = '#source-map';
 
-module.exports = config;
+module.exports = config
