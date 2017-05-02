@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <base href="/">
+  <title>{{ name }}</title>
+  <meta name="viewport" content="width=device-width">
+</head>
+<body>
+  <div class="container" ui-view></div>
+  <script>
+    {{{{raw-helper}}}}
+    window.$ENV = '{{ ENV }}'
+    {{{{/raw-helper}}}}
+  </script>
+  <script src="https://unpkg.com/jquery@2.1.0/dist/jquery.min.js"></script>
+  <script src="https://unpkg.com/angular@1.6.4/angular.min.js"></script>
+</body>
+</html>
