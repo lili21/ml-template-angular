@@ -1,5 +1,4 @@
 var path = require('path')
-var webpack = require('webpack')
 
 var config = {
   entry: {
@@ -7,54 +6,62 @@ var config = {
   },
   output: {
     path: path.resolve(__dirname, '../dist'),
-    publicPath: '/',
     filename: '[name].js'
   },
+  externals: {
+    'jquery': 'jQuery',
+    'angular': 'angular'
+  },
   module: {
-    loaders: [
+    rules: [
       {
-        test: /\.(png|jpg|gif|svg)$/,
-        loader: 'url',
-        query: {
+        test: /\.js$/,
+        loader: 'eslint-loader',
+        enforce: 'pre',
+        exclude: /node_modules/,
+        options: {
+          formatter: require('eslint-friendly-formatter')
+        }
+      },
+      {
+        test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
+        loader: 'url-loader',
+        options: {
           limit: 10000,
-          name: 'assets/[name].[hash:7].[ext]'
+          name: 'assets/img/[name].[hash:7].[ext]'
+        }
+      },
+      {
+        test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
+        loader: 'url-loader',
+        options: {
+          limit: 10000,
+          name: 'assets/font/[name].[hash:7].[ext]'
         }
       },
       {
         test: /\.html$/,
-        loader: 'html?root=~'
+        loader: 'html-loader',
+        options: {
+          root: '~',
+          ignoreCustomFragments: [/\{\{.*?}}/],
+          minimize: true
+        }
       },
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        loaders: ['ng-annotate?add=true', 'babel-loader']
-      },
-      {
-        test: /[\/]angular\.js$/,
-        loader: 'exports?angular'
-      },
-      {
-        test: require.resolve('jquery'),
-        loader: 'expose?$!expose?jQuery'
+        loader: 'babel-loader'
       }
     ]
   },
   resolve: {
-    root: [path.join(__dirname, '../node_modules')],
-    extensions: ['', '.js'],
-    modulesDirectories: ['client', 'client/assets', 'node_modules']
-  },
-  resolveLoader: {
-    root: [path.join(__dirname, '../node_modules')]
-  },
-  sassLoader: {
-    sourceMap: true,
-    includePaths: ['node_modules'],
-    indentedSyntax: true
-  },
-  plugins: [
-    new webpack.optimize.OccurenceOrderPlugin()
-  ]
+    modules: [
+      'client',
+      'client/assets',
+      'node_modules'
+    ]
+  }
 }
 
 module.exports = config

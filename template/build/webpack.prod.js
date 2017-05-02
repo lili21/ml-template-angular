@@ -2,15 +2,37 @@ var path = require('path')
 var webpack = require('webpack')
 var ExtractTextPlugin = require('extract-text-webpack-plugin')
 var HtmlWebpackPlugin = require('html-webpack-plugin')
+var OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
+var UglifyJSPlugin = require('uglifyjs-webpack-plugin')
+
 var config = require('./webpack.base')
 
 config.output.filename = '[name].[chunkhash:6].js'
-config.output.chunkFilename = '[id].[chunkhash:6].js'
+config.output.chunkFilename = '[name].[chunkhash:6].js'
+config.output.publicPath = '/'
 
-config.module.loaders = (config.module.loaders || []).concat([
+config.module.rules = (config.module.rules || []).concat([
   {
     test: /\.(sass|scss)$/,
-    loader: ExtractTextPlugin.extract('style', 'css?sourceMap!sass')
+    use: ExtractTextPlugin.extract({
+      fallback: 'style-loader',
+      use: [
+        {
+          loader: 'css-loader',
+          options: {
+            sourceMap: true
+          }
+        },
+        {
+          loader: 'sass-loader',
+          options: {
+            sourceMap: true,
+            includePaths: ['node_modules'],
+            indentedSyntax: true
+          }
+        }
+      ]
+    })
   }
 ])
 
@@ -20,66 +42,54 @@ config.plugins = (config.plugins || []).concat([
     __PRODUCTION__: true,
     'process.env.NODE_ENV': '"production"'
   }),
-
   new HtmlWebpackPlugin({
-    filename: 'index.html.etpl',
-    template: 'client/bootstrap/index.html.ejs',
-    // 需要自己控制inject的位置，方便以后添加CDN的代码
-    inject: false,
-    // 保证vendor在app前加载
-    chunksSortMode: 'dependency',
-    exluceChunks: 'manifest'
+    filename: 'index.html',
+    template: 'client/bootstrap/index.html.etpl',
+    inject: true,
+    minify: {
+      removeComments: true,
+      collapseWhitespace: true,
+      removeAttributeQuotes: true
+      // more options:
+      // https://github.com/kangax/html-minifier#options-quick-reference
+    },
+    chunksSortMode: 'dependency'
   }),
-
-  // require node_modules内的模块都会打包到vendor中
   new webpack.optimize.CommonsChunkPlugin({
     name: 'vendor',
-    minChunks: function(module) {
-      return (
-        module.resource &&
-        /\.js$/.test(module.resource) &&
-        module.resource.indexOf(path.join(__dirname, '../node_modules')) === 0
-      );
+    minChunks: function (module) {
+      // this assumes your vendor imports exist in the node_modules directory
+      return module.context && module.context.indexOf('node_modules') !== -1
     }
   }),
-
-  // webpack 的commonschunkplugin有一些问题，即使代码不变，chuankhash还是会变，所以需要做一下处理
-  // https://github.com/webpack/webpack/issues/1315
   new webpack.optimize.CommonsChunkPlugin({
-    name: 'manifest',
-    chunks: ['vendor']
+    name: 'manifest'
   }),
-
-  new webpack.optimize.UglifyJsPlugin({
+  new webpack.LoaderOptionsPlugin({
+    minimize: true
+  }),
+  new UglifyJSPlugin({
     compress: {
       warnings: false
-    }
+    },
+    sourceMap: true
   }),
-
-  new ExtractTextPlugin('[name].[contenthash:6].css')
+  new ExtractTextPlugin({
+    filename: '[name].[contenthash:6].css',
+    allChunks: true
+  }),
+  new OptimizeCSSPlugin({
+    cssProcessorOptions: {
+      safe: true
+    }
+  })
 ])
 
-// inline manifest code
-config.plugins.push(function() {
-  this.plugin('compilation', function(compilation) {
-    compilation.plugin('html-webpack-plugin-after-emit', function(file, callback) {
-      var manifest = ''
-      Object.keys(compilation.assets).forEach(function(filename) {
-        if (/\/?manifest./.test(filename)) {
-          manifest = '<script>' + compilation.assets[filename].source() + '</script>'
-        }
-      });
-      if (manifest) {
-        var htmlSource = file.html.source()
-        htmlSource = htmlSource.replace(/(<\/head>)/, manifest + '$1')
-        file.html.source = function() {
-          return htmlSource;
-        }
-      }
-      callback(null, file)
-    })
-  })
-})
-// config.devtool = '#source-map';
+if (process.env.npm_config_report) {
+  var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
+  config.plugins.push(new BundleAnalyzerPlugin())
+} else {}
+
+config.devtool = false
 
 module.exports = config

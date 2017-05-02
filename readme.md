@@ -1,6 +1,5 @@
 ## tempalte for ml-cli
-
-## webpack + angualr + jquery 项目模板
+> based on webpack, angualr, jquery
 
 ```
 $ ml init angular <project-name>
